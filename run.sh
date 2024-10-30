@@ -1,12 +1,11 @@
 #!/bin/bash
-set -e
 
 # Usage: ./run.sh <nodes_count> <partitionned> <type>
 nodes_count=$1
 partitionned=$2
 type=$3 # "rdd" or "dataframe"
 
-bucket_name="pagerank-homework"
+bucket_name="gs://pagerank-homework"
 cluster="pagerank-cluster"
 data="gs://public_lddm_data/small_page_links.nt"
 output="gs://$bucket_name/nodes-$nodes_count/partitionned-$partitionned"
@@ -18,8 +17,7 @@ if [ -z "$GOOGLE_CLOUD_PROJECT" ]; then
 fi
 
 # Create bucket if not exists
-exists=$(gsutil ls -b gs://$bucket_name 2>&1)
-# Output if not exists: "BucketNotFoundException: 404 gs://pagerank-homework bucket does not exist."
+exists=$(gsutil ls -b $bucket_name)
 if [[ $exists == *"BucketNotFoundException"* ]]; then
   gcloud storage buckets create $bucket_name --project="$GOOGLE_CLOUD_PROJECT" --default-storage-class=standard --location=europe-west1
 fi
@@ -28,7 +26,7 @@ fi
 gsutil -m rm -r "$output"
 
 # Move py scripts to bucket (overwrite if exists)
-gsutil cp pagerank_"${type}".py gs://$bucket_name/pagerank_"${type}".py
+gsutil cp pagerank_"${type}".py $bucket_name/pagerank_"${type}".py
 
 #Create cluster
 if [[ $nodes_count -ge 2 ]]; then
@@ -50,7 +48,7 @@ fi
 
 # Start job
 gcloud dataproc jobs submit pyspark --region europe-west1 \
-    --cluster ${cluster} gs://$bucket_name/pagerank_"${type}".py \
+    --cluster ${cluster} $bucket_name/pagerank_"${type}".py \
     -- ${data} 3 "${partitionned}" "${output}"
 
 gcloud dataproc clusters describe ${cluster} --region europe-west1
