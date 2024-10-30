@@ -2,4 +2,7 @@
 
 ## Getting Started
 
-Test
+```bash
+make -C . 2_node_small_links_rdd
+make -C . 2_node_partitionned_small_links_rdd
+```

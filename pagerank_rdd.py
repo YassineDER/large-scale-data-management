@@ -25,6 +25,7 @@ if __name__ == "__main__":
     input_file = sys.argv[1]
     num_iterations = int(sys.argv[2])
     with_partition = sys.argv[3].lower() == "true"
+    output_path = sys.argv[4]
 
     # Initialiser Spark
     spark = SparkSession.builder.appName("PythonPageRank").getOrCreate()
@@ -53,13 +54,16 @@ if __name__ == "__main__":
         # Recalculer les rangs avec une pondération de 0.85
         ranks = contribs.reduceByKey(add).mapValues(lambda rank: rank * 0.85 + 0.15)
 
-    # Récupérer et afficher les résultats
-    for (link, rank) in ranks.collect():
-        print(f"{link} a un PageRank de : {rank:.4f}")
+    ranks.saveAsTextFile(output_path)
 
+    # L'entité de rank la plus élevée
+    print("Max Value is : %s (%s)" % ranks.max(
+        key=lambda rank_tuple: rank_tuple[1]))
 
+    # Calcul du temps d'exécution
     start_time = spark.sparkContext.startTime
     end_time = int(time.time_ns() / 1000000)
     print(f"Temps d'exécution : {(end_time - start_time) / 1000:.2f} secondes")
+
     spark.stop()
 
