@@ -17,12 +17,14 @@ if [ -z "$GOOGLE_CLOUD_PROJECT" ]; then
 fi
 
 # Create bucket if not exists
-exists=$(gsutil ls -b $bucket_name)
+exists=$(gsutil ls -b $bucket_name 2>&1)
 if [[ $exists == *"BucketNotFoundException"* ]]; then
+  echo "Bucket does not exist, creating it..."
   gcloud storage buckets create $bucket_name --project="$GOOGLE_CLOUD_PROJECT" --default-storage-class=standard --location=europe-west1
 fi
 
 # Clean bucket
+
 gsutil -m rm -r "$output"
 
 # Move py scripts to bucket (overwrite if exists)
