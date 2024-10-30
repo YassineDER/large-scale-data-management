@@ -18,7 +18,7 @@ if [ -z "$GOOGLE_CLOUD_PROJECT" ]; then
 fi
 
 # Create bucket if not exists
-exists=$(gsutil ls -b gs://$bucket_name)
+exists=$(gsutil ls -b gs://$bucket_name 2>&1)
 # Output if not exists: "BucketNotFoundException: 404 gs://pagerank-homework bucket does not exist."
 if [[ $exists == *"BucketNotFoundException"* ]]; then
   gcloud storage buckets create $bucket_name --project="$GOOGLE_CLOUD_PROJECT" --default-storage-class=standard --location=europe-west1
