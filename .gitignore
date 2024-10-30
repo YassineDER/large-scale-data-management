@@ -5,7 +5,6 @@ __pycache__/
 
 # C extensions
 *.so
-
 public_lddm_data/
 
 # Distribution / packaging

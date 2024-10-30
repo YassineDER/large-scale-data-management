@@ -1,4 +1,3 @@
 pip
 pyspark
 pyspark-stubs
-findspark
