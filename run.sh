@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 # Usage: ./run.sh <nodes_count> <partitionned> <type>
 nodes_count=$1
@@ -18,7 +19,8 @@ fi
 
 # Create bucket if not exists
 exists=$(gsutil ls -b gs://$bucket_name)
-if [ -z "$exists" ]; then
+# Output if not exists: "BucketNotFoundException: 404 gs://pagerank-homework bucket does not exist."
+if [[ $exists == *"BucketNotFoundException"* ]]; then
   gcloud storage buckets create $bucket_name --project="$GOOGLE_CLOUD_PROJECT" --default-storage-class=standard --location=europe-west1
 fi
 
