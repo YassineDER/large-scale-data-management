@@ -1,7 +1,6 @@
 import re, sys, time
 from operator import add
 from pyspark.sql import SparkSession
-from pyspark.storagelevel import StorageLevel
 
 
 def computeContribs(urls, rank):
@@ -18,8 +17,8 @@ def parseNeighbors(urls):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 4:
-        print("Usage: pagerank <file> <iterations>", file=sys.stderr)
+    if len(sys.argv) != 5:
+        print("Usage: pagerank <file> <iterations> <with_partition: \"true\" || \"false\"> <output_path>", file=sys.stderr)
         sys.exit(-1)
 
     input_file = sys.argv[1]
