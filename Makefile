@@ -7,7 +7,7 @@ all: 1_node_small_links_rdd 2_node_small_links_rdd 4_node_small_links
 	@bash run.sh 2 "rdd"
 
 4_node_small_links:
-	@bash run.sh 4 false
+	@bash run.sh 4 "rdd"
 
 #1_node_small_links_dataframe:
 #	@bash run.sh 1 "dataframe"
