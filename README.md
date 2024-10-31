@@ -21,3 +21,9 @@ Where:
 - nodes_count: number of nodes to use in DataProc
 - type: "rdd" or "dataframe"
 - service_account: service account to use for DataProc in email format (optional, default is compute engine service account)
+
+## Results
+
+The results are based on 3 interations of the PageRank algorithm,
+
+```

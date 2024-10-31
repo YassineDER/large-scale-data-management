@@ -1,6 +1,10 @@
-import re, sys, time
+import re
+import sys
+import time
+
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import *
+from pyspark.sql.functions import col, lit, regexp_extract, sum as _sum
+
 
 def computeContribs(urls, rank):
     """Calcule les contributions de rang pour les voisins."""
@@ -31,30 +35,35 @@ if __name__ == "__main__":
     df = spark.read.text(input_file)
     # Créer un DataFrame de liens (source, destination) et les regrouper par source
     links_df = df.select(
-        regexp_extract('value', r'<([^>]+)>', 1).alias('source'),
-        regexp_extract('value', r'<[^>]+> <([^>]+)>', 1).alias('destination')
+        regexp_extract('value', r'<(http://dbpedia.org/resource/[^>]+)>', 1).alias('source'),
+        regexp_extract('value', r'<http://dbpedia.org/resource/[^>]+)', 1).alias('destination')
     ).distinct()
 
-    # Initialiser les rangs
     ranks_df = links_df.select("source").distinct().withColumn("rank", lit(1.0))
 
     if with_partition:
         numPartitions = 4
-        links_df = links_df.repartition(numPartitions)
+        links_df = links_df.repartition(numPartitions, "source")
         ranks_df = ranks_df.repartition(numPartitions)
 
     # Effectuer les itérations de PageRank
     start_time = time.time()
     for iteration in range(num_iterations):
-        # Calculer les contributions des URL pour chaque voisin
-        contribs_df = links_df.join(ranks_df, links_df.source == ranks_df.source) \
-            .select("destination", (col("rank") / count("destination")).alias("contrib")) \
-            .groupBy("destination").agg(sum("contrib").alias("rank"))
+        # Calculer le nombre de voisins de chaque source
+        neighbor_counts = links_df.groupBy("source").count().withColumnRenamed("count", "num_neighbors")
 
-        # Recalculer les rangs avec une pondération de 0.85
-        ranks_df = contribs_df.withColumn("rank", col("rank") * 0.85 + 0.15)
+        # Joindre les liens avec les rangs et le nombre de voisins
+        contribs_df = links_df.join(ranks_df, "source").join(neighbor_counts, "source")
 
-    ranks_df.write.format("text").save(output_path)
+        # Calculer les contributions pour chaque destination
+        contribs_df = contribs_df.withColumn(
+            "contrib", col("rank") / col("num_neighbors")
+        ).select("destination", "contrib")
+
+        # Recalculer le nouveau rang en agrégeant les contributions
+        ranks_df = contribs_df.groupBy("destination").agg(
+            (0.85 * _sum("contrib") + 0.15).alias("rank")
+        )
 
     # L'entité de rank la plus élevée
     result = "Max PageRank entity is : %s (%s)" % ranks_df.orderBy(col("rank").desc()).first()
