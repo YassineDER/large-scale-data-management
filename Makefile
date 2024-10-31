@@ -5,7 +5,7 @@
 #	@bash run.sh 4 false
 
 2_node_small_links_rdd:
-	@bash run.sh 2 false "rdd"
+	@bash run.sh 2 "rdd"
 
 #2_node_small_links_dataframe:
 #	@bash run.sh 2 false "dataframe"
@@ -18,9 +18,6 @@
 #
 #4_node_partitionned_small_links:
 #	@bash run.sh 4 true
-
-2_node_partitionned_small_links_rdd:
-	@bash run.sh 2 true "rdd"
 
 #2_node_partitionned_small_links_dataframe:
 #	@bash run.sh 2 true "dataframe"

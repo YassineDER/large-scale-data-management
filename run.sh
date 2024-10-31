@@ -1,15 +1,13 @@
 #!/bin/bash
 
 nodes_count=$1
-partitionned=$2
-type=$3 # "rdd" or "dataframe"
-service_account=$4
+type=$2 # "rdd" or "dataframe"
+service_account=$3
 
 project_id=${GOOGLE_CLOUD_PROJECT}
 bucket_name="gs://pagerank-homework"
-cluster="pagerank-cluster-n$nodes_count-$type-part-$partitionned"
+cluster="pagerank-cluster-n$nodes_count-$type"
 data="gs://public_lddm_data/small_page_links.nt"
-output="$bucket_name/nodes-$nodes_count/partitionned-$partitionned"
 
 # if project_id is not set, exit
 echo "Checking project id if set..."
@@ -43,6 +41,9 @@ if [[ $exists == *"BucketNotFoundException"* ]]; then
   gcloud storage buckets create $bucket_name --project="$project_id" \
   --default-storage-class=standard --location=europe-west1 --no-public-access-prevention
 fi
+
+partitionned="true"
+output="$bucket_name/nodes-$nodes_count/partitionned-$partitionned"
 
 # Clean bucket
 gsutil -m rm -r "$output"
@@ -78,6 +79,18 @@ if [[ ! -n "$cluster_exists" ]]; then
 else
     echo "Cluster ${cluster} already exists, skipping creation."
 fi
+
+# Start job (3 iterations)
+gcloud dataproc jobs submit pyspark --region europe-west1 \
+    --cluster ${cluster} $bucket_name/$script \
+    -- ${data} 3 "${partitionned}" "${output}"
+
+partitionned="false"
+output="$bucket_name/nodes-$nodes_count/partitionned-$partitionned"
+
+# Clean bucket
+echo "Cleaning bucket from previous similar output..."
+gsutil -m rm -r "$output"
 
 # Start job (3 iterations)
 gcloud dataproc jobs submit pyspark --region europe-west1 \
