@@ -42,6 +42,9 @@ if [[ $exists == *"BucketNotFoundException"* ]]; then
   --default-storage-class=standard --location=europe-west1 --no-public-access-prevention
 fi
 
+
+
+# ---------------------------- Partitionned -------------------------------
 partitionned="true"
 output="$bucket_name/nodes-$nodes_count/partitionned-$partitionned"
 
@@ -85,6 +88,9 @@ gcloud dataproc jobs submit pyspark --region europe-west1 \
     --cluster ${cluster} $bucket_name/$script \
     -- ${data} 3 "${partitionned}" "${output}"
 
+
+
+# ---------------------------- URLs not Partitionned -------------------------------
 partitionned="false"
 output="$bucket_name/nodes-$nodes_count/partitionned-$partitionned"
 

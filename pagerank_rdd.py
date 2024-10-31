@@ -39,11 +39,12 @@ if __name__ == "__main__":
 
     if with_partition:
         numPartitions = 4
-        lines_partitioned = lines.partitionBy(numPartitions).glom()
-        links_partitioned = links.partitionBy(numPartitions).glom()
-        ranks_partitioned = ranks.partitionBy(numPartitions).glom()
+        lines = lines.partitionBy(numPartitions).glom()
+        links = links.partitionBy(numPartitions).glom()
+        ranks = ranks.partitionBy(numPartitions).glom()
 
     # Effectuer les itérations de PageRank
+    start_time = time.time()
     for iteration in range(num_iterations):
         # Calculer les contributions des URL pour chaque voisin
         contribs = links.join(ranks).flatMap(
@@ -56,13 +57,17 @@ if __name__ == "__main__":
     ranks.saveAsTextFile(output_path)
 
     # L'entité de rank la plus élevée
-    print("Max Value is : %s (%s)" % ranks.max(
-        key=lambda rank_tuple: rank_tuple[1]))
+    result = "Max PageRank entity is : %s (%s)" % ranks.max(
+        key=lambda rank_tuple: rank_tuple[1])
 
     # Calcul du temps d'exécution
-    start_time = spark.sparkContext.startTime
-    end_time = int(time.time_ns() / 1000000)
-    print(f"Temps d'exécution : {(end_time - start_time) / 1000:.2f} secondes")
+    end_time = time.time()
+    execution_time = end_time - start_time
+
+    # Sauvegarde du résultat dans un txt, dans output_path
+    with open(output_path + "/result.txt", "w") as f:
+        f.write(result + "\n")
+        f.write("Execution Time : " + execution_time + " seconds\n")
 
     spark.stop()
 
