@@ -24,6 +24,13 @@ Where:
 
 ## Results
 
-The results are based on 3 interations of the PageRank algorithm,
+The results are based on **3 iterations** in the PageRank algorithm.
+
+| Nodes | RDD - Time without partitioning | RDD - Time with partitioning |
+|-------|---------------------------------|------------------------------|
+| 1     | 44s                             | 54s                          |
+| 2     | 29s                             | 39s                          |
+| 4     | 32s                             | 40s                          |
+
 
 ```
