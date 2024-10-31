@@ -1,3 +1,5 @@
+all: 1_node_small_links_rdd 2_node_small_links_rdd 4_node_small_links
+
 1_node_small_links_rdd:
 	@bash run.sh 1 "rdd"
 
