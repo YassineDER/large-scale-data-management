@@ -24,7 +24,8 @@ Where:
 
 ## Results: `small_page_links.nt`
 
-The created clusters for this file are of type `n1-standard-4` with 1, 2 and 4 nodes.
+The created clusters for this file are of type `n1-standard-4` with 1, 2 and 4 nodes (4vCPUs, 15GB RAM).
+
 The results are based on **3 iterations** in the PageRank algorithm, and the number of partitions is set to **4**.
 
 

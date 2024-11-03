@@ -8,12 +8,11 @@ service_account=$4
 project_id=${GOOGLE_CLOUD_PROJECT}
 bucket_name="gs://pagerank-homework"
 cluster="pagerank-cluster-n$nodes_count-$type"
+data="gs://public_lddm_data/small_page_links.nt"
 
 # Define data based on data_type (big or small)
 if [ "$data_type" == "big" ]; then
   data="gs://public_lddm_data/page_links_en.nt.bz2"
-else
-data="gs://public_lddm_data/small_page_links.nt"
 fi
 
 # if project_id is not set, exit

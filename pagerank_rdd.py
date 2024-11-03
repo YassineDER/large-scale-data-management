@@ -62,7 +62,7 @@ if __name__ == "__main__":
 
     # Calcul du temps d'exécution
     end_time = time.time()
-    execution_time = end_time - start_time
+    execution_time = str(end_time - start_time)
 
     # Sauvegarde du résultat dans un txt, dans output_path
     with open(output_path + "/result.txt", "w") as f:
