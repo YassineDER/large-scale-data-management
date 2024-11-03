@@ -35,7 +35,7 @@ The results are based on **3 iterations** in the PageRank algorithm, and the num
 | 2     | 29s                             | 39s                          |
 | 4     | 32s                             | 40s                          |
 
-The entity with the highest PageRank is
+The entity with the highest PageRank is: `<http://dbpedia.org/resource/Attention-deficit_hyperactivity_disorder>', 0.30051150556157313`
 
 | Nodes | DataFrame - Time without partitioning | DataFrame - Time with partitioning |
 |-------|---------------------------------------|------------------------------------|

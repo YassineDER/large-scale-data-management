@@ -32,7 +32,7 @@ if __name__ == "__main__":
     # Charger le fichier d'entrée sous forme de RDD brut.
     lines = spark.sparkContext.textFile(input_file)
     # Créer un RDD de liens (source, destination) et les regrouper par source
-    links = lines.map(parseNeighbors).distinct().groupByKey().cache()
+    links = lines.map(lambda urls: parseNeighbors(urls)).distinct().groupByKey().cache()
 
     # Initialiser les rangs des URLs à 1.0 ; les URLs sans lien entrant seront exclus
     ranks = links.map(lambda url_neighbors: (url_neighbors[0], 1.0))
@@ -52,20 +52,20 @@ if __name__ == "__main__":
         )
 
         # Recalculer les rangs avec une pondération de 0.85
-        ranks = contribs.reduceByKey(add).mapValues(lambda rank: rank * 0.85 + 0.15)
+        ranks = contribs.reduceByKey(add).mapValues(lambda rank: (rank * 0.85) + 0.15)
 
-    ranks.saveAsTextFile(output_path)
+    # ranks.saveAsTextFile(output_path)
 
     # L'entité de rank la plus élevée
-    result = "Max PageRank entity is : %s (%s)" % ranks.max(
-        key=lambda rank_tuple: rank_tuple[1])
+    max_rank = ranks.max(key=lambda rank_tuple: rank_tuple[1])
+    result = "Max PageRank entity is : " + str(max_rank)
 
     # Calcul du temps d'exécution
     end_time = time.time()
     execution_time = str(end_time - start_time)
 
     # Sauvegarde du résultat dans un txt, dans output_path
-    with open(output_path + "/result.txt", "w") as f:
+    with open(output_path + "result.txt", "r") as f:
         f.write(result + "\n")
         f.write("Execution Time : " + execution_time + " seconds\n")
 
