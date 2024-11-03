@@ -7,7 +7,6 @@ The scripts must be run on a Google Cloud Shell with the following commands:
 ```bash
 chmod +x run.sh
 make -C . all_rdd_small
-make -C . all_rdd_large
 ```
 
 ## Makefile behavior
@@ -25,6 +24,7 @@ Where:
 
 ## Results: `small_page_links.nt`
 
+The created clusters for this file are of type `n1-standard-4` with 1, 2 and 4 nodes.
 The results are based on **3 iterations** in the PageRank algorithm, and the number of partitions is set to **4**.
 
 
