@@ -2,12 +2,19 @@
 
 nodes_count=$1
 type=$2 # "rdd" or "dataframe"
-service_account=$3
+data_type=$3 # "big" or "small"
+service_account=$4
 
 project_id=${GOOGLE_CLOUD_PROJECT}
 bucket_name="gs://pagerank-homework"
 cluster="pagerank-cluster-n$nodes_count-$type"
+
+# Define data based on data_type (big or small)
+if [ "$data_type" == "big" ]; then
+  data="gs://public_lddm_data/page_links_en.nt.bz2"
+else
 data="gs://public_lddm_data/small_page_links.nt"
+fi
 
 # if project_id is not set, exit
 echo "Checking project id if set..."
@@ -46,7 +53,7 @@ fi
 
 # ---------------------------- Partitionned -------------------------------
 partitionned="true"
-output="$bucket_name/$type/nodes-$nodes_count/partitionned-$partitionned"
+output="$bucket_name/$type/nodes-$nodes_count/partitionned-$partitionned/$data_type"
 
 # Clean bucket
 gsutil -m rm -r "$output"
@@ -89,10 +96,9 @@ gcloud dataproc jobs submit pyspark --region europe-west1 \
     -- ${data} 3 "${partitionned}" "${output}"
 
 
-
 # ---------------------------- URLs not Partitionned -------------------------------
 partitionned="false"
-output="$bucket_name/$type/nodes-$nodes_count/partitionned-$partitionned"
+output="$bucket_name/$type/nodes-$nodes_count/partitionned-$partitionned/$data_type"
 
 # Clean bucket
 echo "Cleaning bucket from previous similar output..."
