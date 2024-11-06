@@ -7,6 +7,7 @@ The scripts must be run on a Google Cloud Shell with the following commands:
 ```bash
 chmod +x run.sh
 make -C . all_rdd_small
+make -C . all_dataframe_small
 ```
 
 ## Makefile behavior
