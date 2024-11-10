@@ -45,4 +45,5 @@ The entity with the highest PageRank is: `<http://dbpedia.org/resource/Attention
 | 4     | 27s                                   | 32s                                |
 
 
-```
+
+**As for the results of the `page_links_en.nt.bz2` file, I've run out of Google Cloud credits to process it :(** 
