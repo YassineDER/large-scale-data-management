@@ -1,10 +1,15 @@
-import re
-import sys
-import time
-
+import re, time, sys
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import col, lit, regexp_extract, sum as _sum
+from pyspark.sql.functions import col, lit
 
+if len(sys.argv) != 5:
+    print("Usage: python3 pagerank_dataframe.py <data_input_file> <iterations> <with_partition: \"true\" || \"false\"> <output_path>", file=sys.stderr)
+    sys.exit(-1)
+
+input_file = sys.argv[1]
+num_iterations = int(sys.argv[2])
+with_partition = sys.argv[3].lower() == "true"
+output_path = sys.argv[4]
 
 def computeContribs(urls, rank):
     """Calcule les contributions de rang pour les voisins."""
@@ -18,64 +23,45 @@ def parseNeighbors(urls):
     parts = re.split(r'\s+', urls)
     return parts[0], parts[2]
 
+# Initialiser Spark
+spark = SparkSession.builder.appName("PythonPageRank").getOrCreate()
+df = spark.read.text(input_file)
 
-if __name__ == "__main__":
-    if len(sys.argv) != 5:
-        print("Usage: pagerank <file> <iterations> <with_partition: \"true\" || \"false\"> <output_path>", file=sys.stderr)
-        sys.exit(-1)
+# Créer un DataFrame de liens (source, destination) et les regrouper par source
+links = df.rdd.map(lambda urls: parseNeighbors(urls[0])).distinct().groupByKey().mapValues(list)
+links_df = links.toDF(["url", "neighbors"])
 
-    input_file = sys.argv[1]
-    num_iterations = int(sys.argv[2])
-    with_partition = sys.argv[3].lower() == "true"
-    output_path = sys.argv[4]
+ranks_df = links_df.select("url").withColumn("rank", lit(1.0))
 
-    # Initialiser Spark
-    spark = SparkSession.builder.appName("PythonPageRank").getOrCreate()
+if with_partition:
+    links_df = links_df.repartition("url")
 
-    df = spark.read.text(input_file)
-    # Créer un DataFrame de liens (source, destination) et les regrouper par source
-    links_df = df.select(
-        regexp_extract('value', r'<(http://dbpedia.org/resource/[^>]+)>', 1).alias('source'),
-        regexp_extract('value', r'<http://dbpedia.org/resource/[^>]+)', 1).alias('destination')
-    ).distinct()
+start_time = time.time()
 
-    ranks_df = links_df.select("source").distinct().withColumn("rank", lit(1.0))
+# Algorithme PageRank
+for i in range(num_iterations):
+    contribs = links_df.join(ranks_df, "url") \
+        .select("url", "neighbors", "rank") \
+        .rdd.flatMap(lambda url_neighbors_rank: [(neighbor, url_neighbors_rank[2] / len(url_neighbors_rank[1])) for neighbor in url_neighbors_rank[1]]) \
+        .reduceByKey(lambda a, b: a + b)
 
-    if with_partition:
-        numPartitions = 4
-        links_df = links_df.repartition(numPartitions, "source")
-        ranks_df = ranks_df.repartition(numPartitions)
+    contribs_df = contribs.toDF(["url", "contrib"])
+    ranks_df = contribs_df.withColumn("rank", (col("contrib") * 0.85 + 0.15)).select("url", "rank")
 
-    # Effectuer les itérations de PageRank
-    start_time = time.time()
-    for iteration in range(num_iterations):
-        # Calculer le nombre de voisins de chaque source
-        neighbor_counts = links_df.groupBy("source").count().withColumnRenamed("count", "num_neighbors")
+    # Saving the ranks to a text file
+ranks_df.orderBy("rank", ascending=False) \
+    .rdd.map(lambda row: f"{row.url} has rank: {row.rank}") \
+    .coalesce(1) \
+    .saveAsTextFile(output_path)
 
-        # Joindre les liens avec les rangs et le nombre de voisins
-        contribs_df = links_df.join(ranks_df, "source").join(neighbor_counts, "source")
+# L'entitée avec le plus haut rang
+highest_rank = ranks_df.orderBy("rank", ascending=False).first()
 
-        # Calculer les contributions pour chaque destination
-        contribs_df = contribs_df.withColumn(
-            "contrib", col("rank") / col("num_neighbors")
-        ).select("destination", "contrib")
+# Calcul du temps d'exécution
+end_time = time.time()
 
-        # Recalculer le nouveau rang en agrégeant les contributions
-        ranks_df = contribs_df.groupBy("destination").agg(
-            (0.85 * _sum("contrib") + 0.15).alias("rank")
-        )
+# Arrêter la session Spark
+spark.stop()
 
-    # L'entité de rank la plus élevée
-    result = "Max PageRank entity is : %s (%s)" % ranks_df.orderBy(col("rank").desc()).first()
-
-    # Calcul du temps d'exécution
-    end_time = time.time()
-    execution_time = end_time - start_time
-
-    # Sauvegarde du résultat dans un txt, dans output_path
-    with open(output_path + "/result.txt", "w") as f:
-        f.write(result + "\n")
-        f.write("Execution Time : " + str(execution_time) + " seconds\n")
-
-    spark.stop()
-
+execution_time = end_time - start_time
+print(f"Temps d'exécution : {execution_time} secondes")
