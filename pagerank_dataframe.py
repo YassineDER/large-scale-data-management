@@ -62,6 +62,6 @@ end_time = time.time()
 
 # Arrêter la session Spark
 spark.stop()
-
 execution_time = end_time - start_time
 print(f"Temps d'exécution : {execution_time} secondes")
+print(f"Entité avec le plus haut rang : {highest_rank.url} avec un rang de {highest_rank.rank}")

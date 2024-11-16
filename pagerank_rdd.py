@@ -32,16 +32,15 @@ if __name__ == "__main__":
     # Charger le fichier d'entrée sous forme de RDD brut.
     lines = spark.sparkContext.textFile(input_file)
     # Créer un RDD de liens (source, destination) et les regrouper par source
-    links = lines.map(lambda urls: parseNeighbors(urls)).distinct().groupByKey().cache()
+    links = lines.map(lambda urls: parseNeighbors(urls)).distinct().groupByKey().mapValues(list)
 
     # Initialiser les rangs des URLs à 1.0 ; les URLs sans lien entrant seront exclus
     ranks = links.map(lambda url_neighbors: (url_neighbors[0], 1.0))
 
     if with_partition:
-        numPartitions = 4
-        lines = lines.partitionBy(numPartitions).glom()
-        links = links.partitionBy(numPartitions).glom()
-        ranks = ranks.partitionBy(numPartitions).glom()
+        lines = lines.partitionBy(10).gloom()
+        links = links.partitionBy(10).gloom()
+        ranks = ranks.partitionBy(10).gloom()
 
     # Effectuer les itérations de PageRank
     start_time = time.time()

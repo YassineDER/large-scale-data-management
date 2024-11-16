@@ -27,23 +27,22 @@ Where:
 
 The created clusters for this file are of type `n1-standard-4` with 1, 2 and 4 nodes (4vCPUs, 15GB RAM).
 
-The results are based on **3 iterations** in the PageRank algorithm, and the number of partitions is set to **4**.
+The results are based on **10 iterations** in the PageRank algorithm.
 
 
-| Nodes | RDD - Time without partitioning | RDD - Time with partitioning |
-|-------|---------------------------------|------------------------------|
-| 1     | 44s                             | 54s                          |
-| 2     | 29s                             | 39s                          |
-| 4     | 32s                             | 40s                          |
+| Nodes | RDD - Time without partitioning | RDD - Time with partitioning (10 partitions) |
+|-------|---------------------------------|----------------------------------------------|
+| 1     | 44s                             | 54s                                          |
+| 2     | 29s                             | 39s                                          |
+| 4     | 32s                             | 40s                                          |
 
-The entity with the highest PageRank is: `<http://dbpedia.org/resource/Attention-deficit_hyperactivity_disorder>' 0.30051150556157313`
+| Nodes | DataFrame - Time without partitioning | DataFrame - Time with url partitioning |
+|-------|---------------------------------------|----------------------------------------|
+| 1     | 35s                                   | 42s                                    |
+| 2     | 25s                                   | 30s                                    |
+| 4     | 27s                                   | 32s                                    |
 
-| Nodes | DataFrame - Time without partitioning | DataFrame - Time with partitioning |
-|-------|---------------------------------------|------------------------------------|
-| 1     | 35s                                   | 42s                                |
-| 2     | 25s                                   | 30s                                |
-| 4     | 27s                                   | 32s                                |
-
+The entity with the highest PageRank is: `<http://dbpedia.org/resource/Anatolia> avec un rang de 0.29334235348965265
 
 
 **As for the results of the `page_links_en.nt.bz2` file, I've run out of Google Cloud credits to process it :(** 
